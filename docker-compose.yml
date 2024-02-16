@@ -1,0 +1,128 @@
+version: '3.8'
+
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  api_prod:
+    restart: on-failure
+    container_name: map-sorter-api-prod
+    # image: high10hunter/node:latest
+    # Uncomment the line below to run on mac os
+    # platform: linux/arm64/v8
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    ports:
+      - '3000:3000'
+    expose:
+      - '3000'
+    env_file:
+      - .env
+
+  db:
+    container_name: postgres-db
+    image: postgres:16-alpine3.18
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=MapSorter
+    ports:
+      - '5432:5432'
+    networks:
+      - app-network
+
+  base:
+    build:
+      dockerfile: base.Dockerfile
+    image: base
+    # Uncomment the line below to run on mac os
+    # platform: linux/arm64/v8
+    environment:
+      - TYPEORM_HOST=postgres-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=MapSorter
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: rabbitmq
+  #   hostname: rabbitmq
+  #   ports:
+  #     - '5672:5672'
+  #     - '15672:15672'
+  #   env_file:
+  #     - ./rabbitmq.env
+  #   networks:
+  #     - app-network
+
+  init_db:
+    image: base
+    # Uncomment the line below to run on mac os
+    # platform: linux/arm64/v8
+    environment:
+      - TYPEORM_HOST=postgres-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=MapSorter
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - base
+    volumes:
+      - ./scripts/wait-for-it.sh:/home/app/scripts/wait-for-it.sh
+    # Uncomment the line below to fix the argon2 error
+    # command: sh -c "npm rebuild argon2 --build-from-source && npm run typeorm:run-migration && npm run seed:run"
+    command:
+      [
+        './scripts/wait-for-it.sh',
+        'postgres-db:5432',
+        '--timeout=30',
+        '--',
+        'sh',
+        '-c',
+        'npm run typeorm:migration-localrun && npm run seed:run',
+      ]
+    networks:
+      - app-network
+
+  api_dev:
+    image: base
+    container_name: map-sorter-api-dev
+    # Uncomment the line below to run on mac os
+    # platform: linux/arm64/v8
+
+    # Uncomment the line below to fix the argon2 error
+    # command: sh -c "npm rebuild argon2 --build-from-source && npm run start:dev"
+    env_file:
+      - .env
+    environment:
+      - TYPEORM_HOST=postgres-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=MapSorter
+    ports:
+      - '3000:3000'
+    expose:
+      - '3000'
+    depends_on:
+      - db
+      - base
+      - init_db
+    volumes:
+      - ./:/home/app/
+      - /home/app/node_modules
+    command: sh -c "npm run start:dev"
+    networks:
+      - app-network
