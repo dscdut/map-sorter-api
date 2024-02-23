@@ -9,9 +9,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApiConfigService } from '@shared/services/api-config.service';
 import { SharedModule } from '@shared/services/shared.module';
 import { MediaModule } from './modules/media/media.module';
+import { UserModule } from '@modules/users/infra/restful-api/user.module';
 
 @Module({
   imports: [
+    UserModule,
     MediaModule,
     ConfigModule.forRoot({
       isGlobal: true,
