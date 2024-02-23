@@ -2,6 +2,7 @@ import { AggregateRootDomain } from '@core/domain/aggregate-root-domain';
 import { UniqueEntityID } from '@core/domain/unique-entity-id';
 import { Result } from '@core/logic/errors-handler';
 import { Guard } from '@core/logic/guard';
+import { UserId } from './value-objects/user-id';
 
 interface UserProps {
   fullName: string;
@@ -10,12 +11,12 @@ interface UserProps {
 }
 
 export class User extends AggregateRootDomain<UserProps> {
-  private constructor(props: UserProps) {
-    super(props);
+  private constructor(props: UserProps, id?: UniqueEntityID) {
+    super(props, id);
   }
 
-  get id(): UniqueEntityID {
-    return this._id;
+  get id(): UserId {
+    return UserId.create(this._id).getValue();
   }
 
   get fullName(): string {
@@ -30,7 +31,7 @@ export class User extends AggregateRootDomain<UserProps> {
     return this.props.avatar;
   }
 
-  public static create(props: UserProps): Result<User> {
+  public static create(props: UserProps, id?: UniqueEntityID): Result<User> {
     const guardResult = Guard.againstNullOrUndefinedBulk([
       { arg: props.fullName, argName: 'fullName' },
       { arg: props.email, argName: 'email' },
@@ -41,7 +42,12 @@ export class User extends AggregateRootDomain<UserProps> {
       return Result.fail<User>(guardResult.getErrorValue());
     }
 
-    const user = new User(props);
+    const user = new User(
+      {
+        ...props,
+      },
+      id,
+    );
 
     return Result.ok<User>(user);
   }

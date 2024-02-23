@@ -11,9 +11,7 @@ export abstract class AggregateRootDomain<T> extends AggregateRoot {
 
   constructor(props: T, id?: UniqueEntityID) {
     super();
-    if (id instanceof UniqueEntityID) {
-      this._id = id ? id : new UniqueEntityID();
-    }
+    this._id = id ? id : new UniqueEntityID();
     this.props = props;
   }
 
