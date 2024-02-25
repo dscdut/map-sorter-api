@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IGeocodeResponseData {
-  coordinates: {
+  location: {
     lat: number;
     lng: number;
   };

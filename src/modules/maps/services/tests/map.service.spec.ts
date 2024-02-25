@@ -35,8 +35,8 @@ describe('MapService', () => {
     const response = await mapService.geocode({ params: { key, address } });
 
     // Assert
-    expect(response.data.coordinates).toBeDefined();
-    expect(response.data.coordinates.lat).toBeDefined();
-    expect(response.data.coordinates.lng).toBeDefined();
+    expect(response.data.location).toBeDefined();
+    expect(response.data.location.lat).toBeDefined();
+    expect(response.data.location.lng).toBeDefined();
   });
 });
