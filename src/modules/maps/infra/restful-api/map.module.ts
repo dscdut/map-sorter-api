@@ -7,6 +7,7 @@ import { ApiConfigService } from '@shared/services/api-config.service';
 import { MapController } from './map.controller';
 import { GoogleMapService } from '@modules/maps/services/providers/google-map.service';
 import { GeocodeUseCase } from '@modules/maps/usecases/geocode/geocode.usecase';
+import { GetOptimizedRouteUseCase } from '@modules/maps/usecases/get-optimized-route/get-optimized-route.usecase';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { GeocodeUseCase } from '@modules/maps/usecases/geocode/geocode.usecase';
   controllers: [MapController],
   providers: [
     GeocodeUseCase,
+    GetOptimizedRouteUseCase,
     {
       provide: 'IMapService',
       useClass: GoogleMapService,
