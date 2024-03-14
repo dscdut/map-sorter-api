@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { RouteSeedService } from './route/route-seed.service';
 import { UserSeedService } from './user/user-seed.service';
 import { SeedModule } from './seed.module';
 
@@ -7,6 +8,8 @@ const runSeed = async () => {
 
   // run
   await app.get(UserSeedService).run();
+
+  await app.get(RouteSeedService).run();
 
   await app.close();
 };
