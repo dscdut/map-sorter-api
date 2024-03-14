@@ -27,7 +27,7 @@
     "module:generate": "nest g module modules/%name%",
     "controller:generate": "nest g controller modules/%name%",
     "service:generate": "nest g service modules/%name%",
-    "gen-entity-local": "npx typeorm-model-generator -h localhost -d testdb -u postgres -x postgres -e postgres -o src/database/typeorm/generated  --skipTables=migrations,spatial_ref_sys --noConfig --cf=none --namingStrategy=./src/config/namingStrategy",
+    "gen-entity-local": "npx typeorm-model-generator -h localhost -d MapSorter -u postgres -x postgres -e postgres -o src/database/typeorm/generated  --skipTables=migrations,spatial_ref_sys --noConfig --cf=none --namingStrategy=./src/config/namingStrategy",
     "test": "jest",
     "test:watch": "jest --detectOpenHandles --watch",
     "test:cov": "jest --coverage",

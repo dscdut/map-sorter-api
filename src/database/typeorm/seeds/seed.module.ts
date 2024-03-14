@@ -7,8 +7,11 @@ import { ApiConfigService } from '@shared/services/api-config.service';
 
 import { UserSeedModule } from './user/user-seed.module';
 
+import { RouteSeedModule } from './route/route-seed.module';
+
 @Module({
   imports: [
+    RouteSeedModule,
     UserSeedModule,
     ConfigModule.forRoot({
       isGlobal: true,
