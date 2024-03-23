@@ -1,136 +1,136 @@
 version: 2.1
 
 parameters:
-    task:
-        type: enum
-        enum: ['test', 'build', 'deploy']
-        default: 'build'
-    build_stage:
-        type: enum
-        enum: ['dev', 'prod']
-        default: 'dev'
+  task:
+    type: enum
+    enum: ['test', 'build', 'deploy']
+    default: 'build'
+  build_stage:
+    type: enum
+    enum: ['dev', 'prod']
+    default: 'dev'
 
 executors:
-    node:
-        docker:
-            - image: cimg/node:16.16.0
+  node:
+    docker:
+      - image: cimg/node:16.16.0
 
 jobs:
-    test:
-        machine: true
-        working_directory: ~/map-sorter-api
-        steps:
-            - checkout
-            - restore_cache:
-                  name: Restore NPM cache
-                  keys:
-                      - npm-cache-{{ checksum "package-lock.json" }}
-            - run:
-                  name: Run tests
-                  command: npm run test
+  test:
+    machine: true
+    working_directory: ~/map-sorter-api
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - npm-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Run tests
+          command: npm run test
 
-    build:
-        machine: true
-        working_directory: ~/map-sorter-api
-        steps:
-            - checkout
-            - restore_cache:
-                  name: Restore NPM cache
-                  keys:
-                      - npm-cache-{{ checksum "package-lock.json" }}
-                      - npm-cache-
-            - run:
-                  name: Update NPM version
-                  command: npm install -g npm@latest
+  build:
+    machine: true
+    working_directory: ~/map-sorter-api
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - npm-cache-{{ checksum "package-lock.json" }}
+            - npm-cache-
+      - run:
+          name: Update NPM version
+          command: npm install -g npm@latest
 
-            - save_cache:
-                  name: Save NPM cache
-                  key: npm-cache-{{ checksum "package-lock.json" }}
-                  paths:
-                      - ~/.cache/npm
-                      - ./node_modules
-            - run:
-                  name: Install dependencies
-                  command: npm ci
-            - run:
-                  name: Run tests
-                  command: npm run test
-            - run:
-                  name: Build
-                  command: npm run build
+      - save_cache:
+          name: Save NPM cache
+          key: npm-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ~/.cache/npm
+            - ./node_modules
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Run tests
+          command: npm run test
+      - run:
+          name: Build
+          command: npm run build
 
-    deploy:
-        executor: node
-        working_directory: ~/map-sorter-api
-        steps:
-            - checkout
-            - restore_cache:
-                  name: Restore NPM cache
-                  keys:
-                      - npm-cache-{{ checksum "package-lock.json" }}
-                      - npm-cache-
-            - run:
-                  name: Install dependencies
-                  command: npm ci
-            - save_cache:
-                  name: Save NPM cache
-                  key: npm-cache-{{ checksum "package-lock.json" }}
-                  paths:
-                      - ~/.cache/npm
-                      - ./node_modules
-            - run:
-                  name: 'Deploy to << pipeline.parameters.build_stage >>'
-                  command: |
-                      curl -i -H "X-Secret-Signature: $WEBHOOK_SECRET" \
-                          -H "Content-Type: application/json" \
-                          -X POST $WEBHOOK_URL/redeploy
+  deploy:
+    executor: node
+    working_directory: ~/map-sorter-api
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - npm-cache-{{ checksum "package-lock.json" }}
+            - npm-cache-
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - save_cache:
+          name: Save NPM cache
+          key: npm-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ~/.cache/npm
+            - ./node_modules
+      - run:
+          name: 'Deploy to << pipeline.parameters.build_stage >>'
+          command: |
+            curl -i -H "X-Secret-Signature: $WEBHOOK_SECRET" \
+                -H "Content-Type: application/json" \
+                -X POST $WEBHOOK_URL/redeploy
 
 workflows:
-    version: 3
-    Test:
-				# if the 'task' parameter equals 'test' then run Test workflow
-        when:
-            equal: [test, << pipeline.parameters.task >>]
-        jobs:
-            - test
-    Build:
-				# if the 'task' parameter equals 'build' then run Build workflow
-        when:
-            equal: [build, << pipeline.parameters.task >>]
-        jobs:
-            - build:
-                  filters:
-                      branches:
-                          only: develop
+  version: 3
+  Test:
+    # if the 'task' parameter equals 'test' then run Test workflow
+    when:
+      equal: [test, << pipeline.parameters.task >>]
+    jobs:
+      - test
+  Build:
+    # if the 'task' parameter equals 'build' then run Build workflow
+    when:
+      equal: [build, << pipeline.parameters.task >>]
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: develop
 
-    DeployDev:
-				# if the 'task' parameter equals 'deploy' 
-				# and the 'build_stage' parameter equals 'dev' then run DeployDev workflow
-        when:
-            and:
-                - equal: [deploy, << pipeline.parameters.task >>]
-                - equal: [dev, << pipeline.parameters.build_stage >>]
-        jobs:
+  DeployDev:
+    # if the 'task' parameter equals 'deploy'
+    # and the 'build_stage' parameter equals 'dev' then run DeployDev workflow
+    when:
+      and:
+        - equal: [deploy, << pipeline.parameters.task >>]
+        - equal: [dev, << pipeline.parameters.build_stage >>]
+    jobs:
+      - build
+      - deploy:
+          requires:
             - build
-            - deploy:
-                  requires:
-                      - build
-                  filters:
-                      branches:
-                          only: develop
+          filters:
+            branches:
+              only: develop
 
-    DeployProd:
-				# if the 'task' parameter equals 'deploy' 
-				# and the 'build_stage' parameter equals 'prod' then run DeployProd workflow
-        when:
-            and:
-                - equal: [deploy, << pipeline.parameters.task >>]
-                - equal: [prod, << pipeline.parameters.build_stage >>]
-        jobs:
+  DeployProd:
+    # if the 'task' parameter equals 'deploy'
+    # and the 'build_stage' parameter equals 'prod' then run DeployProd workflow
+    when:
+      and:
+        - equal: [deploy, << pipeline.parameters.task >>]
+        - equal: [prod, << pipeline.parameters.build_stage >>]
+    jobs:
+      - build
+      - deploy:
+          requires:
             - build
-            - deploy:
-                  requires:
-                      - build
-                  filters:
-                      branches:
-                          only: main
+          filters:
+            branches:
+              only: main
