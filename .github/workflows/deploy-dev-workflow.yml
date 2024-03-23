@@ -1,0 +1,21 @@
+name: DeployDev
+on:
+    pull_request:
+        types: [closed]
+        branches: [main]
+
+jobs:
+    deploy:
+        if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' }}
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Trigger DeployDev workflow on CircleCI
+              run: |
+                  curl \
+                      -X POST \
+                      -H "Content-Type: application/json" \
+                      -H "Circle-Token: ${{ secrets.CIRCLECI_TOKEN }}" \
+                      --data '{"branch": "main", "parameters": {"task": "deploy", "build_stage": "dev"}}' \
+                      https://circleci.com/api/v2/project/gh/dscdut/map-sorter-api/pipeline
