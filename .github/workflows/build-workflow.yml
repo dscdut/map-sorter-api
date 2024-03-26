@@ -1,11 +1,10 @@
 name: Build
 on:
-    pull_request_review:
-        types: [submitted]
-
+    pull_request:
+        types: [opened, synchronize]
+        branches: [main]
 jobs:
     build:
-        if: ${{ github.event.review.state == 'approved' && github.event.pull_request.base.ref == 'main' }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
