@@ -2,7 +2,7 @@ name: Test
 on:
     pull_request:
         types: [opened, synchronize]
-        branches: [main]
+        branches: [develop]
 jobs:
     test:
         runs-on: ubuntu-latest
