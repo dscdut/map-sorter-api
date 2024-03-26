@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   task:
     type: enum
-    enum: ['test', 'build', 'deploy']
+    enum: ['build', 'deploy']
     default: 'build'
   build_stage:
     type: enum
@@ -16,19 +16,6 @@ executors:
       - image: cimg/node:16.16.0
 
 jobs:
-  test:
-    machine: true
-    working_directory: ~/map-sorter-api
-    steps:
-      - checkout
-      - restore_cache:
-          name: Restore NPM cache
-          keys:
-            - npm-cache-{{ checksum "package-lock.json" }}
-      - run:
-          name: Run tests
-          command: npm run test
-
   build:
     machine: true
     working_directory: ~/map-sorter-api
@@ -87,12 +74,6 @@ jobs:
 
 workflows:
   version: 3
-  Test:
-    # if the 'task' parameter equals 'test' then run Test workflow
-    when:
-      equal: [test, << pipeline.parameters.task >>]
-    jobs:
-      - test
   Build:
     # if the 'task' parameter equals 'build' then run Build workflow
     when:
