@@ -2,11 +2,11 @@ name: DeployDev
 on:
     pull_request:
         types: [closed]
-        branches: [main]
+        branches: [develop]
 
 jobs:
     deploy:
-        if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' }}
+        if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop' }}
         runs-on: ubuntu-latest
 
         steps:
