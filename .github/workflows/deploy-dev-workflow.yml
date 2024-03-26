@@ -17,5 +17,5 @@ jobs:
                       -X POST \
                       -H "Content-Type: application/json" \
                       -H "Circle-Token: ${{ secrets.CIRCLECI_TOKEN }}" \
-                      --data '{"branch": "main", "parameters": {"task": "deploy", "build_stage": "dev"}}' \
+                      --data '{"branch": "develop", "parameters": {"task": "deploy", "build_stage": "dev"}}' \
                       https://circleci.com/api/v2/project/gh/dscdut/map-sorter-api/pipeline
