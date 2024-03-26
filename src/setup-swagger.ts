@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export function setupSwagger(app: INestApplication): void {
   const documentBuilder = new DocumentBuilder()
-    .setTitle('Map Sorter API Documentation')
+    .setTitle('Map Sorter API Documentation v1.0.0')
     .setDescription('The API Documentation for Map Sorter Product of GDSC-DUT')
     .addBearerAuth(
       {
