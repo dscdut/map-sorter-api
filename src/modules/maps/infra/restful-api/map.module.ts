@@ -8,6 +8,8 @@ import { MapController } from './map.controller';
 import { GoogleMapService } from '@modules/maps/services/providers/google-map.service';
 import { GeocodeUseCase } from '@modules/maps/usecases/geocode/geocode.usecase';
 import { GetOptimizedRouteUseCase } from '@modules/maps/usecases/get-optimized-route/get-optimized-route.usecase';
+import { TypeOrmRouteRepository } from '@modules/maps/repos/implementations/typeorm.route.repository';
+import { SaveRouteUseCase } from '@modules/maps/usecases/save-route/save-route.usecase';
 
 @Module({
   imports: [
@@ -27,10 +29,16 @@ import { GetOptimizedRouteUseCase } from '@modules/maps/usecases/get-optimized-r
   providers: [
     GeocodeUseCase,
     GetOptimizedRouteUseCase,
+    SaveRouteUseCase,
     {
       provide: 'IMapService',
       useClass: GoogleMapService,
     },
+    {
+      provide: 'IRouteRepository',
+      useClass: TypeOrmRouteRepository,
+    },
   ],
+  exports: ['IRouteRepository', 'IMapService', PassportModule],
 })
 export class MapModule {}
