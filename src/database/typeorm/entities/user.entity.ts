@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Route } from './route.entity';
+import { RouteEntity } from './route.entity';
 
 @Index('users_email_key', ['email'], { unique: true })
 @Index('users_pkey', ['id'], { unique: true })
@@ -37,6 +37,6 @@ export class User {
   })
   updatedAt?: Date | null;
 
-  @OneToMany(() => Route, (route) => route.user)
-  routes: Route[];
+  @OneToMany(() => RouteEntity, (route) => route.user)
+  routes: RouteEntity[];
 }

@@ -3,7 +3,7 @@ import { User } from './user.entity';
 
 @Index('routes_pkey', ['id'], { unique: true })
 @Entity('routes', { schema: 'public' })
-export class Route {
+export class RouteEntity {
   @Column('uuid', {
     primary: true,
     name: 'id',
@@ -14,11 +14,14 @@ export class Route {
   @Column('character varying', { name: 'name' })
   name: string;
 
-  @Column('text', { name: 'path_display', nullable: true })
-  pathDisplay: string | null;
+  @Column('json', { name: 'path_display', nullable: true })
+  pathDisplay: object | null;
 
   @Column('character varying', { name: 'provider' })
   provider: string;
+
+  @Column('uuid', { name: 'user_id' })
+  userId: string;
 
   @Column('timestamp with time zone', {
     name: 'created_at',
