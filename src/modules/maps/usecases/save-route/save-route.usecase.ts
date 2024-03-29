@@ -20,12 +20,13 @@ export class SaveRouteUseCase
 
   async execute({
     saveRouteDto,
+    userId,
   }: SaveRouteCommand): Promise<SaveRouteResponse> {
     let route: Route;
 
     const routeExists = await this.routeRepository.exists(
       saveRouteDto.name,
-      saveRouteDto.userId,
+      userId,
     );
 
     if (routeExists) {
@@ -44,7 +45,7 @@ export class SaveRouteUseCase
             }
           : null,
         provider: saveRouteDto.provider,
-        userId: saveRouteDto.userId,
+        userId: userId,
       });
 
       if (routeOrError.isFailed) {

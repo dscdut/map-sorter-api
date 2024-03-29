@@ -7,7 +7,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUUID,
   ValidateNested,
 } from 'class-validator';
 
@@ -61,13 +60,4 @@ export class SaveRouteRequestDto {
   @IsNotEmpty()
   @IsEnum(MapProvidersEnum)
   provider: MapProvidersEnum;
-
-  @ApiProperty({
-    type: String,
-    example: '18c1e2d6-23e6-4f75-980f-b1339hd328',
-  })
-  @IsString()
-  @IsUUID()
-  @IsNotEmpty()
-  userId: string;
 }

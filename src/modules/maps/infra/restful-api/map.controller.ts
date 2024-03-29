@@ -28,6 +28,8 @@ import { SaveRouteRequestDto } from '@modules/maps/usecases/save-route/save-rout
 import { SaveRouteResponse } from '@modules/maps/usecases/save-route/save-route.response';
 import { SaveRouteCommand } from '@modules/maps/usecases/save-route/save-route.command';
 import { DuplicateRouteName } from '@modules/maps/usecases/save-route/save-route.errors';
+import { AuthenticateGuard } from '@modules/users/services/auth/guard/roles.decorator';
+import { CurrentUser } from '@shared/decorator/user.decorator';
 
 @Controller('maps')
 export class MapController {
@@ -107,6 +109,7 @@ export class MapController {
   }
 
   @Post('save-route')
+  @AuthenticateGuard()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     tags: ['maps'],
@@ -120,11 +123,12 @@ export class MapController {
   })
   async saveRoute(
     @Body() saveRouteRequestDto: SaveRouteRequestDto,
+    @CurrentUser('id') userId: string,
   ): Promise<SaveRouteResponse> {
     const result = await this.commandBus.execute<
       SaveRouteCommand,
       SaveRouteResponse
-    >(new SaveRouteCommand(saveRouteRequestDto));
+    >(new SaveRouteCommand(saveRouteRequestDto, userId));
 
     if (result.isSuccess()) {
       return;
