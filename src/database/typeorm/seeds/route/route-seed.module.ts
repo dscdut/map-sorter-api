@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Route } from 'src/database/typeorm/entities/route.entity';
+import { RouteEntity } from 'src/database/typeorm/entities/route.entity';
 import { RouteSeedService } from './route-seed.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Route])],
+  imports: [TypeOrmModule.forFeature([RouteEntity])],
   providers: [RouteSeedService],
   exports: [RouteSeedService],
 })
