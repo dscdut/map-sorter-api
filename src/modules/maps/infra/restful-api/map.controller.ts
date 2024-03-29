@@ -21,13 +21,20 @@ import {
   InternalServerErrorException,
   Post,
 } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { GetOptimizedRouteRequestDto } from '../../usecases/get-optimized-route/get-optimized-route.dto';
+import { SaveRouteRequestDto } from '@modules/maps/usecases/save-route/save-route.dto';
+import { SaveRouteResponse } from '@modules/maps/usecases/save-route/save-route.response';
+import { SaveRouteCommand } from '@modules/maps/usecases/save-route/save-route.command';
+import { DuplicateRouteName } from '@modules/maps/usecases/save-route/save-route.errors';
 
 @Controller('maps')
 export class MapController {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(
+    private readonly queryBus: QueryBus,
+    private readonly commandBus: CommandBus,
+  ) {}
 
   @Post('geocode')
   @HttpCode(HttpStatus.OK)
@@ -92,6 +99,40 @@ export class MapController {
       switch (error.constructor) {
         case NotFoundOptimizedRoute:
         case WaypointsLimitExceeded:
+          throw new BadRequestException(error.getErrorValue());
+        default:
+          throw new InternalServerErrorException(error.getErrorValue());
+      }
+    }
+  }
+
+  @Post('save-route')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    tags: ['maps'],
+    operationId: 'save-route',
+    summary: 'Save Route',
+    description: 'Save optimized route',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Successful',
+  })
+  async saveRoute(
+    @Body() saveRouteRequestDto: SaveRouteRequestDto,
+  ): Promise<SaveRouteResponse> {
+    const result = await this.commandBus.execute<
+      SaveRouteCommand,
+      SaveRouteResponse
+    >(new SaveRouteCommand(saveRouteRequestDto));
+
+    if (result.isSuccess()) {
+      return;
+    } else if (result.isFailure()) {
+      const error = result.value;
+
+      switch (error.constructor) {
+        case DuplicateRouteName:
           throw new BadRequestException(error.getErrorValue());
         default:
           throw new InternalServerErrorException(error.getErrorValue());
