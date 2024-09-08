@@ -1,0 +1,31 @@
+{
+  "Parameters": [
+      {
+          "Name": "/dev/STRING_PARAM_1",
+          "Type": "String",
+          "Value": "value1",
+          "Version": 1,
+          "LastModifiedDate": "2024-08-05T14:08:53.195000+07:00",
+          "ARN": "arn:aws:ssm:us-east-1:905418451816:parameter/dev/STRING_PARAM_1",
+          "DataType": "text"
+      },
+      {
+          "Name": "/dev/SECURE_STRING_PARAM_2",
+          "Type": "SecureString",
+          "Value": "value2",
+          "Version": 1,
+          "LastModifiedDate": "2024-08-05T14:08:44.258000+07:00",
+          "ARN": "arn:aws:ssm:us-east-1:905418451816:parameter/dev/SECURE_STRING_PARAM_2",
+          "DataType": "text"
+      },
+      {
+          "Name": "/dev/STRING_LIST_PARAM_3",
+          "Type": "StringList",
+          "Value": "value3a,value3b,value3c",
+          "Version": 1,
+          "LastModifiedDate": "2024-08-05T14:08:44.258000+07:00",
+          "ARN": "arn:aws:ssm:us-east-1:905418451816:parameter/dev/STRING_LIST_PARAM_3",
+          "DataType": "text"
+      }
+  ]
+}
