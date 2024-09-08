@@ -45,7 +45,7 @@ jobs:
     steps:
       - aws-cli/setup:
           role-arn: 'arn:aws:iam::253274624210:role/circleci-oidc-provider-aws'
-          aws-region: us-east-1
+          aws-region: 'us-east-1'
       - checkout
 
       - add_ssh_keys:
