@@ -94,7 +94,7 @@ workflows:
       - build:
           filters:
             branches:
-              only: test
+              only: develop
 
   DeployDev:
     # if the 'task' parameter equals 'deploy'
@@ -104,11 +104,11 @@ workflows:
         - equal: [deploy, << pipeline.parameters.task >>]
         - equal: [dev, << pipeline.parameters.build_stage >>]
     jobs:
-      - build
+      # - build
       - deploy:
           context: aws
-          requires:
-            - build
+          # requires:
+          #   - build
           filters:
             branches:
               only: test
