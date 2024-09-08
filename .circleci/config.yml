@@ -65,11 +65,12 @@ jobs:
           command: |
             echo "SSH into dev server"
             ssh -oStrictHostKeyChecking=no -v $SSH_USER@$SSH_HOST
-            su gdsc
 
       - run:
           name: Login to DockerHub
-          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          command: |
+            su - gdsc
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
       - run:
           name: 'Deploy to << pipeline.parameters.build_stage >> environment'
