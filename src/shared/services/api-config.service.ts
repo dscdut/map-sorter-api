@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import fs from 'fs';
 import entities from '../../database/typeorm/entities';
 import { config } from 'dotenv';
 
@@ -39,12 +38,7 @@ export class ApiConfigService {
       synchronize: false,
       maxQueryExecutionTime:
         this.configService.get<number>('DB_MAX_QUERY_TIME'),
-      ssl:
-        this.configService.get('DB_USE_SSL') === 'true'
-          ? {
-              ca: fs.readFileSync('ca-certificate.crt'),
-            }
-          : undefined,
+      ssl: this.configService.get('DB_USE_SSL') === 'true' ? true : undefined,
     };
   }
 
