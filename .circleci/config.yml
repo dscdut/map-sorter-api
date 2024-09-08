@@ -53,15 +53,11 @@ jobs:
             - 'SHA256:+2S1UpsWHcjQu4ur9jpqF16GQa9NrND9qbFNU6pzB64'
 
       - run:
-          name: Create .env file
+          name: Create .env file and sync to dev server
           command: |
             cd tools
             aws ssm get-parameters-by-path --path "/dev" --with-decryption --recursive > mapsorter_env.json
             ./convert_ssm_params_to_dotenv.sh mapsorter_env.json
-
-      - run:
-          name: Sync .env file to dev server
-          command: |
             scp -oStrictHostKeyChecking=no -v -r .env $SSH_USER@$SSH_HOST:/home/gdsc/map-sorter-api/.env
 
       - run:
