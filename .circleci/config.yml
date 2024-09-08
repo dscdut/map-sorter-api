@@ -50,7 +50,7 @@ jobs:
 
       - add_ssh_keys:
           fingerprints:
-            - 'SHA256:r975R93QG2qUrcc8kJfKeXJOekEWO5ucsg/TSPLAyk8'
+            - 'SHA256:+2S1UpsWHcjQu4ur9jpqF16GQa9NrND9qbFNU6pzB64'
 
       - run:
           name: Create .env file
