@@ -75,7 +75,7 @@ jobs:
                 docker container stop map-sorter-api || true &&
                 docker container rm map-sorter-api || true &&
                 docker run --log-opt max-size=10m --log-opt max-file=3 --log-opt compress=true \
-                          --name map-sorter-api -d --env-file .env $DOCKER_IMAGE:$DOCKER_TAG &&
+                          --name map-sorter-api -dp 3000:3000 --env-file .env $DOCKER_IMAGE:$DOCKER_TAG &&
                 docker image prune --all -f
                 rm .env
               '
@@ -101,11 +101,8 @@ workflows:
         - equal: [deploy, << pipeline.parameters.task >>]
         - equal: [dev, << pipeline.parameters.build_stage >>]
     jobs:
-      - build
       - deploy:
           context: aws
-          requires:
-            - build
           filters:
             branches:
               only: develop
