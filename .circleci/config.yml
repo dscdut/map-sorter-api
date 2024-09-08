@@ -67,23 +67,17 @@ jobs:
           name: SSH into dev server and deploy
           command: |
             echo "SSH into dev server"
-            ssh  -o StrictHostKeyChecking=no -v $SSH_USER@$SSH_HOST "su - gdsc -c 'cd map-sorter-api && echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin && docker pull $DOCKER_IMAGE:$DOCKER_TAG && docker container stop map-sorter-api || true && docker container rm map-sorter-api || true && docker run --log-opt max-size=10m --log-opt max-file=3 --log-opt compress=true --name map-sorter-api -d --env-file .env $DOCKER_IMAGE:$DOCKER_TAG && docker image prune --all -f'"
-
-      # - run:
-      #     name: Login to DockerHub
-      #     command: |
-      #       su - gdsc
-      #       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
-      # - run:
-      #     name: 'Deploy to << pipeline.parameters.build_stage >> environment'
-      #     command: |
-      #       echo "Deploying to << pipeline.parameters.build_stage >>"
-      #       docker pull $DOCKER_IMAGE:$DOCKER_TAG
-      #       docker container stop map-sorter-api || true
-      #       docker container rm map-sorter-api || true
-      #       docker run --log-opt max-size=10m --log-opt max-file=3 --log-opt compress=true --name map-sorter-api -d --env-file .env $DOCKER_IMAGE:$DOCKER_TAG
-      #       docker image prune --all -f
+            ssh -o StrictHostKeyChecking=no -v $SSH_USER@$SSH_HOST << 'EOF'
+              su - gdsc -c '
+                cd map-sorter-api &&
+                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin &&
+                docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
+                docker container stop map-sorter-api || true &&
+                docker container rm map-sorter-api || true &&
+                docker run --log-opt max-size=10m --log-opt max-file=3 --log-opt compress=true --name map-sorter-api -d --env-file .env $DOCKER_IMAGE:$DOCKER_TAG &&
+                docker image prune --all -f
+              '
+            EOF
 
 workflows:
   version: 3
@@ -105,11 +99,11 @@ workflows:
         - equal: [deploy, << pipeline.parameters.task >>]
         - equal: [dev, << pipeline.parameters.build_stage >>]
     jobs:
-      # - build
+      - build
       - deploy:
           context: aws
-          # requires:
-          #   - build
+          requires:
+            - build
           filters:
             branches:
               only: test
