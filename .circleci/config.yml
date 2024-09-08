@@ -65,7 +65,7 @@ jobs:
           command: |
             echo "SSH into dev server"
             ssh -oStrictHostKeyChecking=no -v $SSH_USER@$SSH_HOST
-            sudo su gdsc
+            su gdsc
 
       - run:
           name: Login to DockerHub
