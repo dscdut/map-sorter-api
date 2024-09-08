@@ -62,7 +62,7 @@ jobs:
       - run:
           name: Sync .env file to dev server
           command: |
-            scp -oStrictHostKeyChecking=no -v -r .env $SSH_USER@$SSH_HOST:/home/gdsc
+            scp -oStrictHostKeyChecking=no -v -r .env $SSH_USER@$SSH_HOST:/home/gdsc/map-sorter-api/.env
 
       - run:
           name: SSH into dev server
