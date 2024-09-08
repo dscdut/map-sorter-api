@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
@@ -15,11 +14,6 @@ export const PostgresDataSource = new DataSource({
   password: configService.get('TYPEORM_PASSWORD'),
   database: configService.get('TYPEORM_DATABASE'),
   entities,
-  ssl:
-    configService.get('DB_USE_SSL') === 'true'
-      ? {
-          ca: fs.readFileSync('ca-certificate.crt'),
-        }
-      : undefined,
+  ssl: configService.get('DB_USE_SSL') === 'true' ? true : undefined,
   migrations: ['src/database/typeorm/migrations/*.ts'],
 });

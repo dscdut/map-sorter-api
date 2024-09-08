@@ -10,67 +10,79 @@ parameters:
     enum: ['dev', 'prod']
     default: 'dev'
 
-executors:
-  node:
-    docker:
-      - image: cimg/node:16.16.0
+orbs:
+  aws-cli: circleci/aws-cli@3.1
 
 jobs:
   build:
-    machine: true
+    machine:
+      image: ubuntu-2004:current
     working_directory: ~/map-sorter-api
+    environment:
+      DOCKER_IMAGE: high10hunter/map-sorter-api
+      DOCKER_TAG: latest
     steps:
       - checkout
-      - restore_cache:
-          name: Restore NPM cache
-          keys:
-            - npm-cache-{{ checksum "package-lock.json" }}
-            - npm-cache-
       - run:
-          name: Update NPM version
-          command: npm install -g npm@latest
+          name: Login to DockerHub
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-      - save_cache:
-          name: Save NPM cache
-          key: npm-cache-{{ checksum "package-lock.json" }}
-          paths:
-            - ~/.cache/npm
-            - ./node_modules
       - run:
-          name: Install dependencies
-          command: npm ci
-      - run:
-          name: Run tests
-          command: npm run test
-      - run:
-          name: Build
-          command: npm run build
+          name: Build and push image
+          command: |
+            echo "Building image"
+            docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
+
+            echo "Pushing image"
+            docker push $DOCKER_IMAGE:$DOCKER_TAG
+
+            echo "::set-output name=image::$DOCKER_IMAGE:$DOCKER_TAG"
 
   deploy:
-    executor: node
+    machine:
+      image: ubuntu-2004:current
     working_directory: ~/map-sorter-api
     steps:
+      - aws-cli/setup:
+          role-arn: 'arn:aws:iam::"$AWS_ACCOUNT_ID":role/circleci-oidc-provider-aws'
+          aws-region: $AWS_REGION
       - checkout
-      - restore_cache:
-          name: Restore NPM cache
-          keys:
-            - npm-cache-{{ checksum "package-lock.json" }}
-            - npm-cache-
+
+      - add_ssh_keys:
+          fingerprints:
+            - 'SHA256:+2S1UpsWHcjQu4ur9jpqF16GQa9NrND9qbFNU6pzB64'
+
       - run:
-          name: Install dependencies
-          command: npm ci
-      - save_cache:
-          name: Save NPM cache
-          key: npm-cache-{{ checksum "package-lock.json" }}
-          paths:
-            - ~/.cache/npm
-            - ./node_modules
-      - run:
-          name: 'Deploy to << pipeline.parameters.build_stage >>'
+          name: Create .env file
           command: |
-            curl -i -H "X-Secret-Signature: $WEBHOOK_SECRET" \
-                -H "Content-Type: application/json" \
-                -X POST $WEBHOOK_URL/redeploy
+            cd tools
+            aws ssm get-parameters-by-path --path "/dev" --with-decryption --recursive > mapsorter_env.json
+            ./convert_ssm_params_to_dotenv.sh mapsorter_env.json
+
+      - run:
+          name: Sync .env file to dev server
+          command: |
+            scp -oStrictHostKeyChecking=no -r .env $SSH_USER@$SSH_HOST:~/map-sorter-api
+
+      - run:
+          name: SSH into dev server
+          command: |
+            echo "SSH into dev server"
+            ssh -oStrictHostKeyChecking=no -v $SSH_USER@$SSH_HOST
+
+      - run:
+          name: Login to DockerHub
+          command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+      - run:
+          name: 'Deploy to << pipeline.parameters.build_stage >> environment'
+          command: |
+            echo "Deploying to << pipeline.parameters.build_stage >>"
+            docker pull $DOCKER_IMAGE:$DOCKER_TAG
+            docker container stop map-sorter-api || true
+            docker container rm map-sorter-api || true
+            docker run --log-opt max-size=10m --log-opt max-file=3 --log-opt compress=true --name map-sorter-api -d --env-file .env $DOCKER_IMAGE:$DOCKER_TAG
+            docker image prune --all -f
 
 workflows:
   version: 3
@@ -82,7 +94,7 @@ workflows:
       - build:
           filters:
             branches:
-              only: develop
+              only: test
 
   DeployDev:
     # if the 'task' parameter equals 'deploy'
@@ -94,11 +106,12 @@ workflows:
     jobs:
       - build
       - deploy:
+          context: aws
           requires:
             - build
           filters:
             branches:
-              only: develop
+              only: test
 
   DeployProd:
     # if the 'task' parameter equals 'deploy'
@@ -110,6 +123,7 @@ workflows:
     jobs:
       - build
       - deploy:
+          context: aws
           requires:
             - build
           filters:

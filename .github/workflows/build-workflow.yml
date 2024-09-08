@@ -2,7 +2,8 @@ name: Build
 on:
     pull_request:
         types: [opened, synchronize]
-        branches: [develop]
+        # branches: [develop]
+        branches: [test]
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -14,5 +15,5 @@ jobs:
                       -X POST \
                       -H "Content-Type: application/json" \
                       -H "Circle-Token: ${{ secrets.CIRCLECI_TOKEN }}" \
-                      --data '{"branch": "develop", "parameters": {"task": "build"}}' \
+                      --data '{"branch": "test", "parameters": {"task": "build"}}' \
                       https://circleci.com/api/v2/project/gh/dscdut/map-sorter-api/pipeline

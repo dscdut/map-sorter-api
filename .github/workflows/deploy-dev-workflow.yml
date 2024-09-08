@@ -2,11 +2,12 @@ name: DeployDev
 on:
     pull_request:
         types: [closed]
-        branches: [develop]
+        # branches: [develop]
+        branches: [test]
 
 jobs:
     deploy:
-        if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop' }}
+        if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'test' }}
         runs-on: ubuntu-latest
 
         steps:
@@ -17,5 +18,5 @@ jobs:
                       -X POST \
                       -H "Content-Type: application/json" \
                       -H "Circle-Token: ${{ secrets.CIRCLECI_TOKEN }}" \
-                      --data '{"branch": "develop", "parameters": {"task": "deploy", "build_stage": "dev"}}' \
+                      --data '{"branch": "test", "parameters": {"task": "deploy", "build_stage": "dev"}}' \
                       https://circleci.com/api/v2/project/gh/dscdut/map-sorter-api/pipeline
