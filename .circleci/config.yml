@@ -107,7 +107,7 @@ workflows:
             - build
           filters:
             branches:
-              only: test
+              only: develop
 
   DeployProd:
     # if the 'task' parameter equals 'deploy'
