@@ -8,7 +8,7 @@ import { DataSource } from 'typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ApiConfigService } from '@shared/services/api-config.service';
 import { SharedModule } from '@shared/services/shared.module';
-import { MediaModule } from './modules/media/media.module';
+// import { MediaModule } from './modules/media/media.module';
 import { UserModule } from '@modules/users/infra/restful-api/user.module';
 import { MapModule } from '@modules/maps/infra/restful-api/map.module';
 
@@ -16,7 +16,7 @@ import { MapModule } from '@modules/maps/infra/restful-api/map.module';
   imports: [
     UserModule,
     MapModule,
-    MediaModule,
+    // MediaModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
