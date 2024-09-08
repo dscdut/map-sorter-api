@@ -1,8 +1,9 @@
 name: DeployDev
 on:
-    pull_request:
-        types: [closed]
+    # pull_request:
+        # types: [closed]
         # branches: [develop]
+      push:
         branches: [test]
 
 jobs:
