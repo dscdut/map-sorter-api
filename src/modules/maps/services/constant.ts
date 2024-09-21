@@ -1,1 +1,1 @@
-export const WAYPOINT_LIMIT = 23;
+export const WAYPOINT_LIMIT = 12;

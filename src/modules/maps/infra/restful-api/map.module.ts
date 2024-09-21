@@ -5,11 +5,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ApiConfigService } from '@shared/services/api-config.service';
 import { MapController } from './map.controller';
-import { GoogleMapService } from '@modules/maps/services/providers/google-map.service';
 import { GeocodeUseCase } from '@modules/maps/usecases/geocode/geocode.usecase';
 import { GetOptimizedRouteUseCase } from '@modules/maps/usecases/get-optimized-route/get-optimized-route.usecase';
 import { TypeOrmRouteRepository } from '@modules/maps/repos/implementations/typeorm.route.repository';
 import { SaveRouteUseCase } from '@modules/maps/usecases/save-route/save-route.usecase';
+import { MapBoxService } from '@modules/maps/services/providers/mapbox.service';
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ import { SaveRouteUseCase } from '@modules/maps/usecases/save-route/save-route.u
     SaveRouteUseCase,
     {
       provide: 'IMapService',
-      useClass: GoogleMapService,
+      useClass: MapBoxService,
     },
     {
       provide: 'IRouteRepository',
