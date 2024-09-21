@@ -36,7 +36,6 @@ export class GetOptimizedRouteUseCase
 
     return success(
       Result.ok<GetOptimizedRouteDtoResponse>({
-        geocoded_waypoints: result.data.geocoded_waypoints,
         routes: result.data.routes,
         status: result.data.status,
       }),

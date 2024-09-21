@@ -78,7 +78,7 @@ export class MapController {
     tags: ['maps'],
     operationId: 'optimized-route',
     summary: 'Optimized Route',
-    description: 'Get optimized route with geocoded waypoints and routes',
+    description: 'Get optimized route with geocode waypoints and routes',
   })
   @ApiResponse({
     status: HttpStatus.OK,
