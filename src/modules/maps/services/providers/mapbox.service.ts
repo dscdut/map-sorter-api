@@ -17,7 +17,7 @@ export class MapBoxService implements IMapService {
     const { address, key } = request.params;
     const url = `${this.MAPBOX_GEOCODE_API_URL}/forward?q=${encodeURIComponent(
       address,
-    )}&access_token=${key}`;
+    )}&access_token=${encodeURIComponent(key)}`;
 
     try {
       const response = await axios.get(url);
@@ -51,7 +51,11 @@ export class MapBoxService implements IMapService {
       `${destination.lng},${destination.lat}`,
     ].join(';');
 
-    const url = `${this.MAPBOX_OPTIMIZED_ROUTE_API_URL}/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${key}&overview=full`;
+    const url = `${
+      this.MAPBOX_OPTIMIZED_ROUTE_API_URL
+    }/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${encodeURIComponent(
+      key,
+    )}&overview=full`;
 
     try {
       const response = await axios.get(url);
