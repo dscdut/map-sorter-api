@@ -5,9 +5,15 @@ import { MapBoxGeocodeResponse } from '../dtos/providers/mapbox/mapbox-geocode-r
 import axios from 'axios';
 import { MapBoxDirectionsRequest } from '../dtos/providers/mapbox/mapbox-directions-request';
 import { MapBoxDirectionsResponse } from '../dtos/providers/mapbox/mapbox-directions-response';
+import { MAPBOX_WAYPOINT_LIMIT } from '../constant';
+import { bulkPreprocessCoordinations } from '../utils';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class MapBoxService implements IMapService {
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+
   private readonly MAPBOX_GEOCODE_API_URL =
     'https://api.mapbox.com/search/geocode/v6';
   private readonly MAPBOX_OPTIMIZED_ROUTE_API_URL =
@@ -44,42 +50,77 @@ export class MapBoxService implements IMapService {
   async directions(
     request: MapBoxDirectionsRequest,
   ): Promise<MapBoxDirectionsResponse> {
-    const { origin, destination, waypoints, key } = request.params;
-    const coordinates = [
-      `${origin.lng},${origin.lat}`,
-      ...waypoints.map((waypoint) => `${waypoint.lng},${waypoint.lat}`),
-      `${destination.lng},${destination.lat}`,
-    ].join(';');
+    const { key } = request.params;
 
-    const url = `${
-      this.MAPBOX_OPTIMIZED_ROUTE_API_URL
-    }/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${encodeURIComponent(
-      key,
-    )}&overview=full`;
+    const preprocessWaypointsWithTooManyCoordinations =
+      await bulkPreprocessCoordinations(request, this.dataSource);
 
-    try {
-      const response = await axios.get(url);
+    const batchSize = MAPBOX_WAYPOINT_LIMIT - 2;
+    const batches = [];
 
-      if (response.data.code !== 'Ok') {
-        return null;
-      }
-
-      return {
-        data: {
-          status: response.data.code,
-          routes: [
-            {
-              waypoints: response.data.waypoints,
-              legs: response.data.trips[0].legs,
-              overview_polyline: response.data.trips[0].geometry,
-            },
-          ],
-        },
-      };
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error.message);
-      return null;
+    for (
+      let i = 0;
+      i < preprocessWaypointsWithTooManyCoordinations.length;
+      i += batchSize
+    ) {
+      batches.push(
+        preprocessWaypointsWithTooManyCoordinations
+          .slice(i, i + batchSize)
+          .map((waypoint) => `${waypoint.lng},${waypoint.lat}`),
+      );
     }
+
+    const routes = [];
+    for (let index = 0; index < batches.length; index++) {
+      const batch = batches[index];
+      const url = `${
+        this.MAPBOX_OPTIMIZED_ROUTE_API_URL
+      }/mapbox/driving/${batch.join(
+        ';',
+      )}?source=first&destination=last&roundtrip=false&access_token=${encodeURIComponent(
+        key,
+      )}&overview=full`;
+
+      try {
+        const response = await axios.get(url);
+        if (response.data.code !== 'Ok') {
+          continue;
+        }
+
+        const currentLastWaypointCoordinate = response.data.waypoints.filter(
+          (waypoint) => waypoint.waypoint_index === batch.length - 1,
+        )[0].location;
+
+        // append the currentLastWaypointCoordinate to the next batch
+        if (index < batches.length - 1) {
+          batches[index + 1].unshift(
+            `${currentLastWaypointCoordinate[0]},${currentLastWaypointCoordinate[1]}`,
+          );
+        }
+
+        routes.push({
+          waypoints: response.data.waypoints.map((waypoint) => ({
+            distance: waypoint.distance,
+            location: [waypoint.location[0], waypoint.location[1]],
+            name: waypoint.name,
+            waypoint_index: waypoint.waypoint_index,
+          })),
+          legs: response.data.trips[0].legs,
+          overview_polyline: response.data.trips[0].geometry,
+        });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error.message);
+      }
+    }
+
+    const filteredRoutes = routes.filter((route) => route !== null);
+
+    return {
+      data: {
+        status: 'Ok',
+        routes: filteredRoutes,
+      },
+    };
   }
 }
