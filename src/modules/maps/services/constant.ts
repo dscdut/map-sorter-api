@@ -1,1 +1,1 @@
-export const WAYPOINT_LIMIT = 12;
+export const MAPBOX_WAYPOINT_LIMIT = 12;
