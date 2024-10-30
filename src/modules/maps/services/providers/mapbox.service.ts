@@ -47,7 +47,49 @@ export class MapBoxService implements IMapService {
     }
   }
 
-  async directions(
+  private async smallPointsOptimalPath(
+    request: MapBoxDirectionsRequest,
+  ): Promise<MapBoxDirectionsResponse> {
+    const { origin, destination, waypoints, key } = request.params;
+    const coordinates = [
+      `${origin.lng},${origin.lat}`,
+      ...waypoints.map((waypoint) => `${waypoint.lng},${waypoint.lat}`),
+      `${destination.lng},${destination.lat}`,
+    ].join(';');
+
+    const url = `${
+      this.MAPBOX_OPTIMIZED_ROUTE_API_URL
+    }/mapbox/driving/${coordinates}?source=first&destination=last&roundtrip=false&access_token=${encodeURIComponent(
+      key,
+    )}&overview=full`;
+
+    try {
+      const response = await axios.get(url);
+
+      if (response.data.code !== 'Ok') {
+        return null;
+      }
+
+      return {
+        data: {
+          status: response.data.code,
+          routes: [
+            {
+              waypoints: response.data.waypoints,
+              legs: response.data.trips[0].legs,
+              overview_polyline: response.data.trips[0].geometry,
+            },
+          ],
+        },
+      };
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error.message);
+      return null;
+    }
+  }
+
+  private async largePointsOptimalPath(
     request: MapBoxDirectionsRequest,
   ): Promise<MapBoxDirectionsResponse> {
     const { key } = request.params;
@@ -122,5 +164,16 @@ export class MapBoxService implements IMapService {
         routes: filteredRoutes,
       },
     };
+  }
+
+  async directions(
+    request: MapBoxDirectionsRequest,
+  ): Promise<MapBoxDirectionsResponse> {
+    const { waypoints } = request.params;
+    if (waypoints.length <= MAPBOX_WAYPOINT_LIMIT - 2) {
+      return this.smallPointsOptimalPath(request);
+    } else {
+      return this.largePointsOptimalPath(request);
+    }
   }
 }
